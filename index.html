@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>🧠 لعبة سودوكو</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #2c3e50, #3498db);
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      direction: rtl;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    #board {
+      display: grid;
+      grid-template-columns: repeat(9, 40px);
+      grid-template-rows: repeat(9, 40px);
+      gap: 2px;
+      justify-content: center;
+      margin: 20px auto;
+      max-width: 380px;
+    }
+
+    input {
+      width: 38px;
+      height: 38px;
+      font-size: 20px;
+      text-align: center;
+      border: none;
+      background-color: #ecf0f1;
+      color: #2c3e50;
+      border-radius: 5px;
+    }
+
+    input:disabled {
+      background-color: #bdc3c7;
+      font-weight: bold;
+    }
+
+    .bold-border {
+      border: 2px solid #2c3e50 !important;
+    }
+
+    button {
+      background: #27ae60;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #2ecc71;
+    }
+
+    #message {
+      font-size: 18px;
+      margin-top: 15px;
+      min-height: 30px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧠 لعبة سودوكو</h1>
+  <p>أكمل الجدول دون تكرار في الصف أو العمود أو المربعات 3×3</p>
+
+  <div id="board"></div>
+  <button onclick="checkBoard()">✅ تحقق</button>
+  <p id="message"></p>
+
+  <script>
+    let level = 0;
+    const puzzles = [
+      // المستوى 1 - سهل
+      [
+        [5,3,'','',7,'','','',''],
+        [6,'','',1,9,5,'','',''],
+        ['','',9,'','','',6,'',''],
+        [8,'','','',6,'','','',3],
+        [4,'','',8,'',3,'','',1],
+        [7,'','','',2,'','','',6],
+        ['','',6,'','','',2,8,''],
+        ['','','',4,1,9,'','',5],
+        ['','','','',8,'','',7,9]
+      ],
+      // المستوى 2 - متوسط
+      [
+        [8,'','',7,'','','','',2],
+        [4,9,'','','','','',6,''],
+        ['','','','',1,2,'','',5],
+        ['','',2,9,'','',8,'',''],
+        ['','','','',6,'','',3,''],
+        [3,'','',1,'','',7,'',''],
+        [6,'',1,3,'','',4,'',''],
+        ['','','',2,'',8,'',1,''],
+        ['','',5,'','',9,'','',3]
+      ],
+      // المستوى 3 - صعب
+      [
+        ['','','',2,'','',9,'',''],
+        ['','',3,'',6,'','','',''],
+        [7,'','','','','','',1,''],
+        [2,'','','','','','',6,''],
+        ['','',7,'','',5,'','',''],
+        ['','','','',1,'','','',''],
+        ['','',1,'','','',3,'',''],
+        ['','',9,'','','','','',''],
+        ['','','',6,'','',7,'','']
+      ]
+    ];
+
+    let currentPuzzle;
+
+    function createBoard(puzzle) {
+      const board = document.getElementById('board');
+      board.innerHTML = '';
+      currentPuzzle = puzzle;
+
+      for (let row = 0; row < 9; row++) {
+        for (let col = 0; col < 9; col++) {
+          const input = document.createElement('input');
+          const value = puzzle[row][col];
+
+          if (value !== '') {
+            input.value = value;
+            input.disabled = true;
+          } else {
+            input.maxLength = 1;
+            input.oninput = function () {
+              this.value = this.value.replace(/[^1-9]/g, '');
+            };
+          }
+
+          // حدود سميكة للمربعات 3x3
+          if (col % 3 === 0) input.style.borderLeft = '2px solid #2c3e50';
+          if (row % 3 === 0) input.style.borderTop = '2px solid #2c3e50';
+          if (col === 8) input.style.borderRight = '2px solid #2c3e50';
+          if (row === 8) input.style.borderBottom = '2px solid #2c3e50';
+
+          board.appendChild(input);
+        }
+      }
+    }
+
+    function checkBoard() {
+      const inputs = document.querySelectorAll('#board input');
+      const grid = Array.from({ length: 9 }, () => Array(9).fill(''));
+
+      let index = 0;
+      for (let row = 0; row < 9; row++) {
+        for (let col = 0; col < 9; col++) {
+          grid[row][col] = inputs[index].value;
+          index++;
+        }
+      }
+
+      if (!isValid(grid)) {
+        document.getElementById('message').textContent = '❌ هناك خطأ في الجدول!';
+        document.getElementById('message').style.color = 'yellow';
+        return;
+      }
+
+      document.getElementById('message').textContent = '🎉 أحسنت! المرحلة التالية!';
+      document.getElementById('message').style.color = '#00ffae';
+
+      level++;
+      if (level >= puzzles.length) {
+        document.getElementById('message').textContent = '🏆 لقد أكملت جميع المراحل!';
+      } else {
+        setTimeout(() => {
+          createBoard(puzzles[level]);
+          document.getElementById('message').textContent = '';
+        }, 1500);
+      }
+    }
+
+    function isValid(grid) {
+      for (let i = 0; i < 9; i++) {
+        const row = new Set();
+        const col = new Set();
+        const box = new Set();
+
+        for (let j = 0; j < 9; j++) {
+          const r = grid[i][j];
+          const c = grid[j][i];
+          const b = grid[3 * Math.floor(i / 3) + Math.floor(j / 3)]
+                        [3 * (i % 3) + (j % 3)];
+
+          if (r && row.has(r)) return false;
+          if (c && col.has(c)) return false;
+          if (b && box.has(b)) return false;
+
+          row.add(r);
+          col.add(c);
+          box.add(b);
+        }
+      }
+      return true;
+    }
+
+    // ابدأ بالمرحلة الأولى
+    createBoard(puzzles[0]);
+  </script>
+</body>
+</html>
