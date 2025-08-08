@@ -110,6 +110,7 @@
 
     <div id="board"></div>
     <button onclick="checkBoard()">✅ تحقق</button>
+    <button onclick="fixErrors()">🔧 إصلاح الأخطاء</button>
     <p id="message"></p>
 
     <script>
@@ -326,7 +327,48 @@
         }
 
         createBoard(puzzles[0]);
+        function fixErrors() {
+    const inputs = document.querySelectorAll('#board input');
+    const grid = Array.from({ length: 9 }, () => Array(9).fill(''));
+    let index = 0;
+
+    // بناء المصفوفة من القيم الحالية
+    for (let row = 0; row < 9; row++) {
+        for (let col = 0; col < 9; col++) {
+            grid[row][col] = inputs[index].value;
+            index++;
+        }
+    }
+
+    index = 0;
+    for (let row = 0; row < 9; row++) {
+        for (let col = 0; col < 9; col++) {
+            const input = inputs[index];
+            const value = input.value;
+
+            if (!input.disabled && value !== '') {
+                input.value = ''; // نحذف القيمة مؤقتًا لفحص بقية القيم
+
+                // إعادة بناء الشبكة بدون هذه الخلية
+                grid[row][col] = '';
+                if (!isValid(grid)) {
+                    // القيمة كانت صحيحة، نعيدها
+                    grid[row][col] = value;
+                    input.value = value;
+                } else {
+                    // القيمة خاطئة، نتركها فارغة
+                    document.getElementById('message').textContent = '🚫 تم مسح الخانات التي تحتوي على أخطاء!';
+                    document.getElementById('message').style.color = 'orange';
+                }
+            }
+
+            index++;
+        }
+    }
+}
+        
     </script>
 </body>
 </html>
+
 
